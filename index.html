@@ -1,167 +1,195 @@
 <!DOCTYPE html>
 <html>
-<head>
+  <head>
     <title>Adaptive Resource Monitor</title>
     <style>
-        body {
-            font-family: Arial;
-            background: #111;
-            color: white;
-            text-align: center;
-            padding-top: 50px;
-        }
-        .box {
-            margin: 20px auto;
-            width: 300px;
-            padding: 20px;
-            border-radius: 10px;
-            background: #222;
-        }
-        .value {
-            font-size: 30px;
-            margin-top: 10px;
-            color: #00eaff;
-        }
+      body {
+        font-family: Arial;
+        background: #111;
+        color: white;
+        text-align: center;
+        padding-top: 50px;
+      }
+      .box {
+        margin: 20px auto;
+        width: 300px;
+        padding: 20px;
+        border-radius: 10px;
+        background: #222;
+      }
+      .value {
+        font-size: 30px;
+        margin-top: 10px;
+        color: #00eaff;
+      }
 
-        /* Threshold Box */
-        .threshold-box {
-            background-color: #78797a;
-            border: 1px solid #ccc;
-            border-radius: 10px;
-            padding: 20px;
-            width: 300px;
-            margin: 20px auto;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-            text-align: center;
-        }
+      /* Threshold Box */
+      .threshold-box {
+        background-color: #78797a;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        padding: 20px;
+        width: 300px;
+        margin: 20px auto;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        text-align: center;
+      }
 
-        /* Labels */
-        .threshold-box label {
-            display: block;
-            margin: 10px 0 5px;
-            font-weight: bold;
-        }
+      /* Labels */
+      .threshold-box label {
+        display: block;
+        margin: 10px 0 5px;
+        font-weight: bold;
+      }
 
-        /* Inputs */
-        .threshold-box input[type="number"] {
-            width: 80px;
-            padding: 5px;
-            border-radius: 5px;
-            border: 1px solid #aaa;
-            text-align: center;
-        }
+      /* Inputs */
+      .threshold-box input[type="number"] {
+        width: 80px;
+        padding: 5px;
+        border-radius: 5px;
+        border: 1px solid #aaa;
+        text-align: center;
+      }
 
-        /* Button */
-        .threshold-box button {
-            margin-top: 15px;
-            padding: 8px 15px;
-            border-radius: 5px;
-            border: none;
-            background-color: #4CAF50;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: background 0.3s;
-        }
-        .threshold-box button:hover {
-            background-color: #45a049;
-        }
+      /* Button */
+      .threshold-box button {
+        margin-top: 15px;
+        padding: 8px 15px;
+        border-radius: 5px;
+        border: none;
+        background-color: #4caf50;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+        transition: background 0.3s;
+      }
+      .threshold-box button:hover {
+        background-color: #45a049;
+      }
+      .progress-bar {
+        width: 100%;
+        height: 25px;
+        background-color: #333;
+        border-radius: 12px;
+        overflow: hidden;
+        margin-top: 10px;
+      }
+
+      .fill {
+        height: 100%;
+        width: 0%;
+        background-color: #00eaff;
+        text-align: right;
+        line-height: 25px;
+        color: white;
+        border-radius: 12px;
+        transition: width 0.5s;
+      }
     </style>
-</head>
-<body>
-
+  </head>
+  <body>
     <h1>Adaptive Resource Allocation Dashboard</h1>
 
     <div class="box">
-        <h3>CPU Usage</h3>
-        <div id="cpu" class="value">--%</div>
+      <h3>CPU Usage</h3>
+      <div class="progress-bar">
+        <div id="cpuBar" class="fill"></div>
+      </div>
+      <div id="cpu" class="value">--%</div>
     </div>
 
     <div class="box">
-        <h3>Memory Usage</h3>
-        <div id="memory" class="value">--%</div>
+      <h3>Memory Usage</h3>
+      <div class="progress-bar">
+        <div id="memoryBar" class="fill"></div>
+      </div>
+      <div id="memory" class="value">--%</div>
     </div>
 
     <div class="threshold-box">
-        <h3>Set CPU & Memory Thresholds</h3>
+      <h3>Set CPU & Memory Thresholds</h3>
 
-        <!-- CPU thresholds -->
-        <label>High CPU %:</label>
-        <input type="number" id="cpuHigh" value="50">
-        <label>Low CPU %:</label>
-        <input type="number" id="cpuLow" value="10">
+      <!-- CPU thresholds -->
+      <label>High CPU %:</label>
+      <input type="number" id="cpuHigh" value="50" />
+      <label>Low CPU %:</label>
+      <input type="number" id="cpuLow" value="10" />
 
-        <!-- Memory thresholds -->
-        <label>High Memory %:</label>
-        <input type="number" id="memHigh" value="70">
-        <label>Low Memory %:</label>
-        <input type="number" id="memLow" value="30">
+      <!-- Memory thresholds -->
+      <label>High Memory %:</label>
+      <input type="number" id="memHigh" value="70" />
+      <label>Low Memory %:</label>
+      <input type="number" id="memLow" value="30" />
 
-        <button onclick="updateThresholds()">Update</button>
+      <button onclick="updateThresholds()">Update</button>
     </div>
 
     <script>
-        async function fetchData() {
-            let response = await fetch("http://127.0.0.1:5000/monitor");
-            let data = await response.json();
+      async function fetchData() {
+        let response = await fetch("http://127.0.0.1:5000/monitor");
+        let data = await response.json();
 
-            // Update CPU and Memory
-            document.getElementById("cpu").innerHTML = data.cpu_percent + "%";
-            document.getElementById("memory").innerHTML = data.memory_percent + "%";
+        // Update CPU
+        document.getElementById("cpu").innerHTML = data.cpu_percent + "%";
+        document.getElementById("cpuBar").style.width = data.cpu_percent + "%";
 
-            // Update Process Groups
-            let groupBox = document.getElementById("groups");
-            if(!groupBox){
-                groupBox = document.createElement("div");
-                groupBox.id = "groups";
-                groupBox.className = "box";
-                groupBox.style.fontSize = "18px";
-                groupBox.style.textAlign = "left";
-                document.body.appendChild(groupBox);
-            }
-            groupBox.innerHTML = "<h3>Process Groups</h3>";
-            for(let group in data.groups){
-                groupBox.innerHTML += `<p>${group}: CPU ${data.groups[group].cpu}% | Mem ${data.groups[group].memory}%</p>`;
-            }
+        // Update Memory
+        document.getElementById("memory").innerHTML = data.memory_percent + "%";
+        document.getElementById("memoryBar").style.width =
+          data.memory_percent + "%";
+
+        // Update Process Groups
+        let groupBox = document.getElementById("groups");
+        if (!groupBox) {
+          groupBox = document.createElement("div");
+          groupBox.id = "groups";
+          groupBox.className = "box";
+          groupBox.style.fontSize = "18px";
+          groupBox.style.textAlign = "left";
+          document.body.appendChild(groupBox);
+        }
+        groupBox.innerHTML = "<h3>Process Groups</h3>";
+        for (let group in data.groups) {
+          groupBox.innerHTML += `<p>${group}: CPU ${data.groups[group].cpu}% | Mem ${data.groups[group].memory}%</p>`;
+        }
+      }
+
+      async function updateThresholds() {
+        let cpuHigh = parseInt(document.getElementById("cpuHigh").value);
+        let cpuLow = parseInt(document.getElementById("cpuLow").value);
+        let memHigh = parseInt(document.getElementById("memHigh").value);
+        let memLow = parseInt(document.getElementById("memLow").value);
+
+        // Input validation
+        if (cpuHigh <= cpuLow || memHigh <= memLow) {
+          alert("High thresholds must be greater than low thresholds!");
+          return;
         }
 
-        async function updateThresholds() {
-            let cpuHigh = parseInt(document.getElementById("cpuHigh").value);
-            let cpuLow = parseInt(document.getElementById("cpuLow").value);
-            let memHigh = parseInt(document.getElementById("memHigh").value);
-            let memLow = parseInt(document.getElementById("memLow").value);
+        await fetch("http://127.0.0.1:5000/set_thresholds", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            cpu_high: cpuHigh,
+            cpu_low: cpuLow,
+            mem_high: memHigh,
+            mem_low: memLow,
+          }),
+        });
 
-            // Input validation
-            if(cpuHigh <= cpuLow || memHigh <= memLow){
-                alert("High thresholds must be greater than low thresholds!");
-                return;
-            }
+        // Non-blocking message
+        let msg = document.createElement("div");
+        msg.innerText = "CPU & Memory thresholds updated!";
+        msg.style.color = "#4CAF50";
+        msg.style.marginTop = "10px";
+        document.body.appendChild(msg);
+        setTimeout(() => msg.remove(), 2000);
+      }
 
-            await fetch("http://127.0.0.1:5000/set_thresholds", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({
-                    cpu_high: cpuHigh,
-                    cpu_low: cpuLow,
-                    mem_high: memHigh,
-                    mem_low: memLow
-                })
-            });
-
-            // Non-blocking message
-            let msg = document.createElement("div");
-            msg.innerText = "CPU & Memory thresholds updated!";
-            msg.style.color = "#4CAF50";
-            msg.style.marginTop = "10px";
-            document.body.appendChild(msg);
-            setTimeout(() => msg.remove(), 2000);
-        }
-
-        // Initial fetch
-        fetchData();
-        // Refresh every second
-        setInterval(fetchData, 1000);
+      // Initial fetch
+      fetchData();
+      // Refresh every second
+      setInterval(fetchData, 1000);
     </script>
-
-</body>
+  </body>
 </html>
