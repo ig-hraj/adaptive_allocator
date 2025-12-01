@@ -45,11 +45,32 @@ psutil.cpu_percent(interval=None)
 # based on the defined thresholds.
 # Runs every 5 seconds in the background.
 # -------------------------------------------------------------
+# -------------------------------------------------------------
+# BACKGROUND THREAD: Adaptive Allocator + Uptime Logging
+# -------------------------------------------------------------
 def background_allocator():
     global CPU_HIGH, CPU_LOW, MEM_HIGH, MEM_LOW
     while True:
+        # Adjust process group priorities
         adjust_priority(CPU_HIGH, CPU_LOW, MEM_HIGH, MEM_LOW)
+
+        # Get CPU and memory usage
+        cpu = psutil.cpu_percent(interval=0.5)
+        memory = psutil.virtual_memory().percent
+
+        # Calculate system uptime
+        boot_time = psutil.boot_time()
+        uptime_seconds = time.time() - boot_time
+        hours = int(uptime_seconds // 3600)
+        minutes = int((uptime_seconds % 3600) // 60)
+        seconds = int(uptime_seconds % 60)
+
+        # Print status in console
+        print(f"[STATUS] CPU: {cpu}% | Memory: {memory}% | Uptime: {hours}h {minutes}m {seconds}s")
+
+        # Sleep for 5 seconds before next check
         time.sleep(5)
+
 
 
 # Start the allocator thread in daemon mode
@@ -105,6 +126,25 @@ def set_thresholds():
         "cpu_low": CPU_LOW,
         "mem_high": MEM_HIGH,
         "mem_low": MEM_LOW
+    })
+
+# -------------------------------------------------------------
+# ROUTE: /uptime
+# Returns the system uptime in seconds and a human-readable format
+# -------------------------------------------------------------
+@app.route("/uptime")
+def get_uptime():
+    boot_time = psutil.boot_time()  # system boot time in seconds since epoch
+    uptime_seconds = time.time() - boot_time
+
+    # Convert to hours, minutes, seconds
+    hours = int(uptime_seconds // 3600)
+    minutes = int((uptime_seconds % 3600) // 60)
+    seconds = int(uptime_seconds % 60)
+
+    return jsonify({
+        "uptime_seconds": int(uptime_seconds),
+        "uptime": f"{hours}h {minutes}m {seconds}s"
     })
 
 
