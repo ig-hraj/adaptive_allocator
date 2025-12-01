@@ -124,6 +124,11 @@
       <button onclick="updateThresholds()">Update</button>
     </div>
 
+    <div class="box">
+      <h3>System Uptime</h3>
+      <div id="uptime" class="value">--:--:--</div>
+    </div>
+
     <script>
       async function fetchData() {
         let response = await fetch("http://127.0.0.1:5000/monitor");
@@ -154,6 +159,18 @@
         }
       }
 
+      async function fetchUptime() {
+        try {
+          const response = await fetch("http://127.0.0.1:5000/uptime");
+          const data = await response.json();
+          document.getElementById("uptime").innerText = data.uptime;
+        } catch (error) {
+          document.getElementById("uptime").innerText = "Error fetching uptime";
+          console.error(error);
+        }
+      } // Fetch uptime immediately and then every 5 seconds
+      fetchUptime();
+      setInterval(fetchUptime, 5000);
       async function updateThresholds() {
         let cpuHigh = parseInt(document.getElementById("cpuHigh").value);
         let cpuLow = parseInt(document.getElementById("cpuLow").value);
